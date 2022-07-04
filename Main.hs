@@ -1,6 +1,6 @@
 module Main where
 
-import CEK
+import CESK
 import LambdaParser
 
 main :: IO ()
@@ -11,5 +11,5 @@ main = do
       putStr "parsed: "
       print e
       putStr "eval'd: "
-      print $ (\(x, _, _) -> x) (evaluate e)
+      print $ (\(x, _, _, _) -> x) (evaluate e)
     Nothing -> putStrLn "failed to parse lambda expression"
