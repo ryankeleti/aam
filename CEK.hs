@@ -5,16 +5,7 @@ module CEK where
  - and <https://arxiv.org/abs/1007.4446v2>.
  -}
 
-type Var = String
-
-data Lambda = Var :=> Exp
-  deriving (Show)
-
-data Exp
-  = Ref Var -- x
-  | Lam Lambda -- \x.e
-  | App Exp Exp -- e e
-  deriving (Show)
+import Lambda
 
 -- Lambda calculus program is an expression.
 type Program = Exp
@@ -23,7 +14,7 @@ type Program = Exp
 type State = (Exp, Env, Kont)
 
 -- Values.
-data Val = Clos Lambda Env
+data Val = Clos Lam Env
 
 -- Environment.
 type Env = Var -> Val
@@ -38,7 +29,7 @@ type Env = Var -> Val
 data Kont
   = Mt
   | Ar Exp Env Kont
-  | Fn Lambda Env Kont
+  | Fn Lam Env Kont
 
 -- step: deterministic transition function
 -- isFinal: predicate indicating whether a state has no successor
@@ -65,21 +56,20 @@ inject e = (e, env0, Mt)
 -- Move execution forward one step.
 step :: State -> State
 -- Lookup a reference in the environment.
-step (Ref x, env, k) = (Lam lam, env', k)
+step (Ref x, env, k) = (Abs lam, env', k)
   where
     Clos lam env' = env x
-
 -- Evaluate a function before the application.
 step (App f e, env, k) = (f, env, Ar e env k)
 -- Evaluate the argument term after evaluating the function.
-step (Lam lam, env, Ar e env' k) = (e, env', Fn lam env k)
+step (Abs lam, env, Ar e env' k) = (e, env', Fn lam env k)
 -- Perform the application after evaluating the function and argument.
-step (Lam lam, env, Fn (x :=> e) env' k) = (e, env' // [x ==> Clos lam env], k)
+step (Abs lam, env, Fn (x :=> e) env' k) = (e, env' // [x ==> Clos lam env], k)
 step _ = error "invalid step"
 
 -- Recognize final state.
 isFinal :: State -> Bool
-isFinal (Lam _, env, Mt) = True
+isFinal (Abs _, env, Mt) = True
 isFinal _ = False
 
 -- Evaluate a program.

@@ -1,8 +1,8 @@
 module LambdaParser where
 
-import CEK
 import Control.Applicative
 import Data.Char
+import Lambda
 import Parser
 
 parseExp :: String -> Maybe Exp
@@ -13,7 +13,7 @@ parseExp s =
 
 expP :: Parser Exp
 expP = do
-  es <- space0 *> some ((lamP <|> atomP) <* space0)
+  es <- space0 *> some ((absP <|> atomP) <* space0)
   case es of
     [e] -> return e
     f : e : es -> return $ foldl App (App f e) es
@@ -25,8 +25,8 @@ atomP = refP <|> parens expP
 refP :: Parser Exp
 refP = Ref <$> varP
 
-lamP :: Parser Exp
-lamP = Lam <$> lambdaP
+absP :: Parser Exp
+absP = Abs <$> lamP
 
 appP :: Parser Exp
 appP = App <$> expP <* space1 *> expP
@@ -34,8 +34,8 @@ appP = App <$> expP <* space1 *> expP
 varP :: Parser Var
 varP = some $ satisfy isVar
 
-lambdaP :: Parser Lambda
-lambdaP = (:=>) <$> (char '\\' *> varP) <* pad (char '.') <*> expP
+lamP :: Parser Lam
+lamP = (:=>) <$> (char '\\' *> varP) <* pad (char '.') <*> expP
 
 isVar :: Char -> Bool
 isVar c = isAlpha c || c == '\'' || c == '_' || c == '-'
