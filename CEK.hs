@@ -51,7 +51,7 @@ inject e = (e, env0, Mt)
 
 (//) :: Eq a => (a -> b) -> [(a, b)] -> (a -> b)
 (//) f [(x, y)] x' = if x == x' then y else f x'
-(//) _ _ _ = error "invalid substitution"
+(//) _ _ _ = error "invalid extension"
 
 -- Move execution forward one step.
 step :: State -> State
